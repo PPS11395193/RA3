@@ -1,0 +1,15 @@
+FROM ubuntu:latest
+
+RUN apt update && apt upgrade -y && apt install -y apache2
+
+RUN a2enmod headers
+
+RUN a2enmod ssl
+
+RUN a2ensite default-ssl
+
+COPY ./apache2.conf /etc/apache2/apache2.conf
+
+EXPOSE 80 443
+
+CMD ["apachectl", "-D", "FOREGROUND"]
