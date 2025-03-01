@@ -1,0 +1,21 @@
+# Usa la imagen base de Ubuntu más reciente
+FROM ubuntu:latest
+
+# Actualiza el sistema e instala Apache2 y otros paquetes necesarios
+RUN apt update && apt upgrade -y && apt install -y apache2
+
+# Habilita los módulos necesarios de Apache
+RUN a2enmod headers
+RUN a2enmod ssl
+
+# Habilita el sitio SSL por defecto
+RUN a2ensite default-ssl
+
+# Copia tu archivo apache2.conf personalizado al contenedor
+COPY ./apache2.conf /etc/apache2/apache2.conf
+
+# Expone los puertos 80 y 443 (HTTP y HTTPS)
+EXPOSE 80 443
+
+# Inicia Apache en primer plano
+CMD ["apachectl", "-D", "FOREGROUND"]
