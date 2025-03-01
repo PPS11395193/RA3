@@ -1,21 +1,31 @@
-# Usa la imagen base de Ubuntu más reciente
+# Usa una imagen base de Ubuntu
 FROM ubuntu:latest
 
-# Actualiza el sistema e instala Apache2 y otros paquetes necesarios
-RUN apt update && apt upgrade -y && apt install -y apache2
+# Actualiza el sistema e instala Apache y ModSecurity
+RUN apt update && apt upgrade -y && \
+    apt install -y apache2 libapache2-mod-security2 && \
+    apt clean
 
-# Habilita los módulos necesarios de Apache
-RUN a2enmod headers
-RUN a2enmod ssl
+# Habilita los módulos necesarios para Apache
+RUN a2enmod headers ssl security2
 
-# Habilita el sitio SSL por defecto
-RUN a2ensite default-ssl
-
-# Copia tu archivo apache2.conf personalizado al contenedor
+# Copia el archivo de configuración de Apache personalizado (si tienes uno)
 COPY ./apache2.conf /etc/apache2/apache2.conf
 
-# Expone los puertos 80 y 443 (HTTP y HTTPS)
+# Copia el archivo index.html
+COPY ./index.html /var/www/html/index.html
+
+# Copia el archivo de configuración recomendado de ModSecurity
+RUN cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+
+# Habilita reglas de seguridad básicas de ModSecurity
+RUN sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+
+# Configura Apache para habilitar el sitio SSL
+RUN a2ensite default-ssl.conf
+
+# Expone los puertos 80 (HTTP) y 443 (HTTPS)
 EXPOSE 80 443
 
-# Inicia Apache en primer plano
+# Comando para mantener Apache en primer plano
 CMD ["apachectl", "-D", "FOREGROUND"]
