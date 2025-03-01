@@ -1,0 +1,45 @@
+# Usa una imagen base de Ubuntu
+FROM ubuntu:latest
+
+# Actualiza el sistema e instala Apache, Git y ModSecurity
+RUN apt update && apt upgrade -y && \
+    apt install -y apache2 git libapache2-mod-security2
+
+# Habilita los módulos necesarios para Apache
+RUN a2enmod headers ssl security2
+
+# Clona el repositorio de las reglas OWASP CRS
+RUN rm -rf /etc/modsecurity/crs && \
+    git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git /etc/modsecurity/crs
+
+# Mueve el archivo crs-setup.conf.example a su ubicación correcta
+RUN mv /etc/modsecurity/crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf
+
+# Mueve las reglas al directorio adecuado
+RUN mv /etc/modsecurity/crs/rules /etc/modsecurity/
+
+# Verifica que modsecurity.conf existe y, si no, lo copia desde el archivo de configuración por defecto
+RUN if [ ! -f /etc/modsecurity/modsecurity.conf ]; then \
+    cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf; \
+    fi
+
+# Configura ModSecurity para activar las reglas de OWASP
+RUN sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+
+# Copia el archivo de configuración del sitio para habilitar SSL y las reglas de ModSecurity
+COPY ./000-default.conf /etc/apache2/sites-available/000-default.conf
+
+# Copia el archivo index.html para probar
+COPY ./index.html /var/www/html/index.html
+
+# Copia el archivo de configuración de Apache personalizado
+COPY ./apache2.conf /etc/apache2/apache2.conf
+
+# Habilita el sitio por defecto y las configuraciones de SSL
+RUN a2ensite 000-default.conf && a2ensite default-ssl.conf && service apache2 restart
+
+# Expone los puertos 80 (HTTP) y 443 (HTTPS)
+EXPOSE 80 443
+
+# Comando para mantener Apache en primer plano
+CMD ["apachectl", "-D", "FOREGROUND"]
