@@ -11,10 +11,7 @@ Para desplegar este contenedor necesitoamos realizar los siguientes comandos:
    ```
 
 3. **Comprobar si la política CSP está aplicada**:
-   ```sh
-   curl "http://localhost:8080/index.html?exec=/../../etc/passwd"
-   ```
-Si todo esta bien deberiamos poder acceder mdiante https://localhost8443 el cual esta firmado con un certificado autofirmado como lo podemos ver en las siguientes capturas de pantalla.
+Para comprobar si todo esta bien deberiamos poder acceder mdiante [Visitar el sitio seguro](https://localhost:8443) el cual esta firmado con un certificado autofirmado como lo podemos ver en las siguientes capturas de pantalla.
 
 ![Aceder a sitio seguro](Capturas/Captura1.png)
 
