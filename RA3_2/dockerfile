@@ -1,0 +1,36 @@
+# Dockerfile para Apache con certificado SSL autofirmado
+
+FROM ubuntu:latest
+
+# Instalar Apache y OpenSSL
+RUN apt-get update && \
+    apt-get install -y apache2 openssl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Habilitar el módulo SSL de Apache
+RUN a2enmod ssl
+
+# Crear directorio para los certificados SSL
+RUN mkdir -p /etc/apache2/ssl
+
+# Generar certificado SSL auto-firmado (válido 365 días)
+RUN openssl req -x509 -nodes -days 365 \
+    -newkey rsa:2048 \
+    -keyout /etc/apache2/ssl/apache.key \
+    -out /etc/apache2/ssl/apache.crt \
+    -subj "/C=ES/ST=Castellón/L=Castellón de la Plana/O=Caminas Web Projects/OU=Departament of Server Development/CN=www.midomimioseguro.com/emailAddress=your_email@midomimioseguro.com"
+
+# Configurar el VirtualHost SSL en default-ssl.conf
+RUN sed -i 's|SSLCertificateFile.*|SSLCertificateFile /etc/apache2/ssl/apache.crt|' /etc/apache2/sites-available/default-ssl.conf && \
+    sed -i 's|SSLCertificateKeyFile.*|SSLCertificateKeyFile /etc/apache2/ssl/apache.key|' /etc/apache2/sites-available/default-ssl.conf && \
+    sed -i 's|ServerAdmin .*|ServerAdmin admin@midominioseguro.com|' /etc/apache2/sites-available/default-ssl.conf && \
+    sed -i 's|#ServerName www.example.com|ServerName www.midomimioseguro.com|' /etc/apache2/sites-available/default-ssl.conf
+
+# Activar el sitio SSL
+RUN a2ensite default-ssl
+
+# Exponer puertos HTTP y HTTPS
+EXPOSE 80 443
+
+# Arrancar Apache en primer plano
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

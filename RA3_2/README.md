@@ -1,26 +1,21 @@
-# RA3_1
+## Desplegar contenedor docker
+Para desplegar este contenedor necesitoamos realizar los siguientes comandos:
 
-Introduction [INTRO](URL_TASKS) :
+1. **Construir la imagen Docker**:
+   ```sh
+   docker build -t pps/apache-certificados  -f Dockerfile .
+   ```
+2. **Ejecutar el contenedor**:
+   ```sh
+   docker run -d -p 8080:80 -p 8443:443 pps/apache-certificados
+   ```
 
-# Tasks
+3. **Comprobar si la política CSP está aplicada**:
+   ```sh
+   curl "http://localhost:8080/index.html?exec=/../../etc/passwd"
+   ```
+Si todo esta bien deberiamos poder acceder mdiante https://localhost8443 el cual esta firmado con un certificado autofirmado como lo podemos ver en las siguientes capturas de pantalla.
 
-* [TASK_1](#URL_TASK_1): XXX
-* [TASK_2](#URL_TASK_2): XXX
+![Aceder a sitio seguro](Capturas/Captura1.png)
 
-# Task_1
-
-Intro...
-
-![IMG](URL_IMG)
-
-Example code:
-
-```
-$ git clone https://github.com/openssh/openssh-portable
-$ patch -p1 < ~/path/to/openssh.patch
-$ autoreconf
-$ ./configure
-$ make
-```
-
-# Task_2
+![Certificado autofirmado](Capturas/Captura2.png)
