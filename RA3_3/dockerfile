@@ -1,0 +1,52 @@
+# Dockerfile para Apache Hardening Best Practices
+FROM ubuntu:latest
+
+# Actualizar repositorios e instalar Apache
+RUN apt-get update && apt-get install -y apache2 && apt-get clean
+
+# Activar módulos necesarios: headers para añadir cabeceras de seguridad
+RUN a2enmod headers
+
+# Desactivar autoindex para evitar listado de directorios
+RUN a2dismod -f autoindex
+
+# Crear archivo de configuración para endurecer Apache
+RUN echo "\
+# Apache Hardening Best Practices\n\
+\n\
+# Evita mostrar información del servidor\n\
+ServerTokens ProductOnly\n\
+ServerSignature Off\n\
+\n\
+# Deshabilita el listado de directorios en cualquier directorio\n\
+<Directory />\n\
+    Options -Indexes\n\
+</Directory>\n\
+\n\
+# Elimina la generación de ETags para no filtrar información\n\
+FileETag None\n\
+\n\
+# Limitar los métodos HTTP a GET, HEAD y POST en el directorio raíz\n\
+<Directory /var/www/>\n\
+    <LimitExcept GET HEAD POST>\n\
+        Deny from all\n\
+    </LimitExcept>\n\
+</Directory>\n\
+\n\
+# Añadir cabeceras de seguridad\n\
+Header always set X-Content-Type-Options \"nosniff\"\n\
+Header always set X-XSS-Protection \"1; mode=block\"\n\
+Header always set X-Frame-Options \"SAMEORIGIN\"\n" \
+> /etc/apache2/conf-available/hardening.conf
+
+# Activar la configuración de hardening
+RUN a2enconf hardening
+
+# Deshabilitar el método TRACE para prevenir ataques Cross Site Tracing
+RUN echo "TraceEnable Off" >> /etc/apache2/apache2.conf
+
+# Exponer el puerto HTTP
+EXPOSE 80
+
+# Arrancar Apache en primer plano
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

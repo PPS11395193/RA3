@@ -1,26 +1,45 @@
-# RA3_1
+## Desplegar contenedor docker
+Para desplegar este contenedor necesitoamos realizar los siguientes comandos:
 
-Introduction [INTRO](URL_TASKS) :
+1. **Construir la imagen Docker**:
+   ```sh
+   docker build -t pps/apache-best-practices  -f Dockerfile .
+   ```
+2. **Ejecutar el contenedor**:
+   ```sh
+   docker run -d -p 8080:80 -p 8443:443 pps/apache-best-practices
+   ```
 
-# Tasks
+3. **Comprobar si la política CSP está aplicada**:
+Para comprobar si todo eta bien vamos a lanzar varias peticiones a nuestro servidor para ver si esta todo bien configurado.
 
-* [TASK_1](#URL_TASK_1): XXX
-* [TASK_2](#URL_TASK_2): XXX
+***3.1 En primer lugar vamos a comprobar si hemos podido esconder la version de Apache***
 
-# Task_1
-
-Intro...
-
-![IMG](URL_IMG)
-
-Example code:
-
+```sh
+curl -I http://localhost:8080
 ```
-$ git clone https://github.com/openssh/openssh-portable
-$ patch -p1 < ~/path/to/openssh.patch
-$ autoreconf
-$ ./configure
-$ make
+![Esconder version Apache](Capturas/Captura1.png)
+
+***3.2 En segundo lugar vamos a comprobar que el listado de directorios está deshabilitado***
+
+```sh
+curl -I http://localhost:8080/somefolder/
 ```
 
-# Task_2
+![Listado de directorios está deshabilitado](Capturas/Captura2.png)
+
+***3.3 Luego vamos a Verificar las cabeceras de seguridad***
+
+```sh
+curl -I http://localhost:8080/
+```
+
+![Cabeceras de seguridad](Capturas/Captura3.png)
+
+***3.4 Y por ultimo comprobar que el método TRACE está deshabilitado***
+
+```sh
+curl -X TRACE http://localhost:8080
+```
+
+![Método TRACE Deshabilitado](Capturas/Captura4.png)
